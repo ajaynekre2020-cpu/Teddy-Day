@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Teddy Day Surprise</title>
+  <style>
+    body {
+      background-color: #ffe6f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .teddy-container {
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    img {
+      width: 40vw; /* teddy is larger */
+      max-width: 250px;
+      cursor: pointer;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .tickle {
+      animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+      0% { transform: translate(0px, 0px) rotate(0deg); }
+      20% { transform: translate(-10px, 0px) rotate(-5deg); }
+      40% { transform: translate(10px, 0px) rotate(5deg); }
+      60% { transform: translate(-10px, 0px) rotate(-5deg); }
+      80% { transform: translate(10px, 0px) rotate(5deg); }
+      100% { transform: translate(0px, 0px) rotate(0deg); }
+    }
+
+    /* Super small speech bubble styling */
+    .bubble {
+      position: absolute;
+      background: #fff;
+      border-radius: 6px;
+      padding: 2px 4px;   /* half the padding */
+      font-size: 1.2vw;   /* half the text size */
+      color: #d63384;
+      font-weight: bold;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      max-width: 15vw;    /* half the width */
+      animation: laughText 1s infinite;
+    }
+
+    @keyframes laughText {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .burst-teddy {
+      position: absolute;
+      width: 8vw;
+      max-width: 35px;
+      pointer-events: none;
+      animation: floatUp 3s forwards;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-40vh) scale(0.5); opacity: 0; }
+    }
+
+    .haha-emoji {
+      position: absolute;
+      font-size: 4vw;
+      animation: floatLaugh 2s forwards;
+      pointer-events: none;
+    }
+
+    @keyframes floatLaugh {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(-20vh); opacity: 0; }
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 600px) {
+      img { width: 60vw; }
+      .bubble { font-size: 2.5vw; max-width: 30vw; }
+      .burst-teddy { width: 10vw; }
+      .haha-emoji { font-size: 6vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="teddy-container">
+    <img id="teddy" src="https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png" alt="Cute Brown Teddy">
+    <!-- Opening line bubble -->
+    <div id="opening" class="bubble" style="top:-15vh; left:50%; transform:translateX(-50%);">
+      Hey Rai Wanna play with me 💕
+    </div>
+    <!-- Tickling bubble -->
+    <div id="message" class="bubble" style="display:none;">
+      Hehe! That tickles! 🧸💖 😂🤣
+    </div>
+  </div>
+
+  <script>
+    const teddy = document.getElementById('teddy');
+    const message = document.getElementById('message');
+    const opening = document.getElementById('opening');
+
+    // Six tickling lines to show one by one
+    const tickleLines = [
+      "Hehe! Dont Do this! 🧸💖 😂🤣",
+      "Your Smile is vary Beautiful! 😍💕",
+      "Opps, Your eyes too! 👀😍",
+      "Are you blushing?! 🤭👀",
+      "You looks pretty when you blush 😍💕",
+      "Happy Teddy Day! 🐻💕🤣"
+    ];
+    let tickleIndex = 0;
+
+    teddy.addEventListener('click', () => {
+      teddy.classList.add('tickle');
+
+      // Hide opening line when tickled
+      opening.style.display = 'none';
+      message.style.display = 'block';
+
+      // Show next tickle line in sequence
+      message.textContent = tickleLines[tickleIndex];
+      tickleIndex = (tickleIndex + 1) % tickleLines.length;
+
+      // Random bubble position (top, bottom, left, right)
+      const positions = ["top", "bottom", "left", "right"];
+      const choice = positions[Math.floor(Math.random() * positions.length)];
+
+      if (choice === "top") {
+        message.style.top = "-15vh";
+        message.style.left = "50%";
+        message.style.right = "auto";
+        message.style.bottom = "auto";
+        message.style.transform = "translateX(-50%)";
+      } else if (choice === "bottom") {
+        message.style.top = "auto";
+        message.style.bottom = "-15vh";
+        message.style.left = "50%";
+        message.style.right = "auto";
+        message.style.transform = "translateX(-50%)";
+      } else if (choice === "left") {
+        message.style.top = "50%";
+        message.style.left = "-20vw";
+        message.style.right = "auto";
+        message.style.bottom = "auto";
+        message.style.transform = "translateY(-50%)";
+      } else if (choice === "right") {
+        message.style.top = "50%";
+        message.style.left = "auto";
+        message.style.right = "-20vw";
+        message.style.bottom = "auto";
+        message.style.transform = "translateY(-50%)";
+      }
+
+      // Burst teddy effect across the whole screen
+      for (let i = 0; i < 20; i++) {
+        const smallTeddy = document.createElement('img');
+        smallTeddy.src = "https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png";
+        smallTeddy.classList.add('burst-teddy');
+        smallTeddy.style.left = Math.random() * window.innerWidth + "px";
+        smallTeddy.style.top = Math.random() * window.innerHeight + "px";
+        document.body.appendChild(smallTeddy);
+
+        setTimeout(() => {
+          smallTeddy.remove();
+        }, 3000);
+      }
+
+      // Add floating laughing emojis
+      const emojis = ["😂", "🤣", "😆"];
+      for (let i = 0; i < 15; i++) {
+        const hahaEmoji = document.createElement('div');
+        hahaEmoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        hahaEmoji.classList.add('haha-emoji');
+        hahaEmoji.style.left = Math.random() * window.innerWidth + "px";
+        hahaEmoji.style.top = Math.random() * window.innerHeight + "px";
+        document.body.appendChild(hahaEmoji);
+
+        setTimeout(() => {
+          hahaEmoji.remove();
+        }, 2000);
+      }
+
+      setTimeout(() => {
+        teddy.classList.remove('tickle');
+      }, 500);
+    });
+  </script>
+</body>
+</html>
