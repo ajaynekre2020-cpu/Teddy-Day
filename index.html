@@ -47,12 +47,12 @@
       position: absolute;
       background: #fff;
       border-radius: 12px;
-      padding: 8px 12px;
-      font-size: 1.6vw;   /* desktop text size */
+      padding: 10px 14px;
+      font-size: 1.8vw;   /* desktop text size */
       color: #d63384;
       font-weight: bold;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      max-width: 25vw;
+      max-width: 30vw;
       animation: laughText 1s infinite;
     }
 
@@ -64,8 +64,8 @@
 
     .burst-teddy {
       position: absolute;
-      width: 10vw;
-      max-width: 60px;
+      width: 12vw;
+      max-width: 70px;
       pointer-events: none;
       animation: floatUp 3s forwards;
     }
@@ -77,7 +77,7 @@
 
     .haha-emoji {
       position: absolute;
-      font-size: 4vw;
+      font-size: 5vw;
       animation: floatLaugh 2s forwards;
       pointer-events: none;
     }
@@ -90,16 +90,16 @@
     /* Mobile adjustments */
     @media (max-width: 600px) {
       img { 
-        width: 85vw;   /* teddy fills most of the phone screen */
+        width: 90vw;   /* teddy fills most of the phone screen */
         max-width: none; 
       }
       .bubble { 
-        font-size: 6vw;   /* bigger text on phone */
-        max-width: 80vw;  /* bubble wider */
-        padding: 12px 16px; /* more padding for readability */
+        font-size: 7vw;   /* much bigger text on phone */
+        max-width: 85vw;  /* bubble wider */
+        padding: 14px 18px; /* more padding for readability */
       }
-      .burst-teddy { width: 22vw; }
-      .haha-emoji { font-size: 12vw; }
+      .burst-teddy { width: 25vw; }
+      .haha-emoji { font-size: 14vw; }
     }
   </style>
 </head>
@@ -156,14 +156,14 @@
         message.style.transform = "translateX(-50%)";
       } else if (choice === "left") {
         message.style.top = "50%";
-        message.style.left = "-25vw";
+        message.style.left = "-30vw";
         message.style.right = "auto";
         message.style.bottom = "auto";
         message.style.transform = "translateY(-50%)";
       } else if (choice === "right") {
         message.style.top = "50%";
         message.style.left = "auto";
-        message.style.right = "-25vw";
+        message.style.right = "-30vw";
         message.style.bottom = "auto";
         message.style.transform = "translateY(-50%)";
       }
