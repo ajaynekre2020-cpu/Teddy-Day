@@ -104,7 +104,7 @@
       gap:16px;
     }
 
-    /* Accessible button as the teddy */
+    /* Accessible button container */
     .teddy-btn{
       appearance:none;
       border:none;
@@ -117,21 +117,27 @@
       position:relative;
       outline: none;
       box-shadow: var(--shadow);
-      /* Image as background: local first, then network fallback */
-      background-image: image-set(
-        url("teddy.png") 1x,
-        url("https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png") 1x
-      );
-      background-size: contain;
-      background-repeat:no-repeat;
-      background-position:center;
+      background-color: #fff7fa;
       transition: transform 120ms ease;
       will-change: transform;
-      /* Light card feel */
-      background-color: #fff7fa;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden; /* keep image inside rounded corners */
     }
     .teddy-btn:active{ transform: scale(.98); }
     .teddy-btn:focus-visible{ outline: 3px solid var(--tap-outline); outline-offset: 4px; }
+
+    /* The actual teddy image */
+    .teddy-img{
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none; /* tap goes to the button */
+    }
 
     .tickle{ animation: tickle var(--dur-tickle) ease-in-out; }
     @keyframes tickle{
@@ -193,15 +199,15 @@
     .burst-teddy{
       width: clamp(42px, 18vw, 82px);
       height: clamp(42px, 18vw, 82px);
-      background-image: image-set(
-        url("teddy.png") 1x,
-        url("https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png") 1x
-      );
+      background-image: url("teddy.png");
       background-size: contain;
       background-repeat:no-repeat;
       background-position:center;
       filter: drop-shadow(0 6px 8px rgba(0,0,0,.12));
       animation: floatUpTeddy var(--dur-float-teddy) ease-out forwards;
+    }
+    .burst-teddy.fallback{
+      background-image: url("https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png");
     }
     @keyframes floatUpTeddy{
       0%{ transform: translate(var(--x,0), var(--y,0)) translate(-50%,-50%) scale(1); opacity:1 }
@@ -229,8 +235,14 @@
     <div class="bg-hearts" aria-hidden="true"></div>
 
     <div class="teddy-wrap">
-      <!-- The teddy as a focusable/tappable control -->
-      <button id="teddy" class="teddy-btn" aria-label="Tickle the teddy" title="Tickle the teddy"></button>
+      <!-- Teddy as a focusable/tappable control with a real <img> -->
+      <button id="teddy" class="teddy-btn" aria-label="Tickle the teddy" title="Tickle the teddy">
+        <img id="teddyImg"
+             class="teddy-img"
+             alt="Cute brown teddy"
+             src="teddy.png"
+             onerror="this.onerror=null; this.src='https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png';" />
+      </button>
 
       <!-- Opening bubble -->
       <div id="opening" class="bubble at-top">
@@ -248,6 +260,7 @@
 
   <script>
     const teddyBtn = document.getElementById('teddy');
+    const teddyImg = document.getElementById('teddyImg');
     const message = document.getElementById('message');
     const opening = document.getElementById('opening');
     const stage = document.querySelector('.stage');
@@ -293,6 +306,10 @@
     function addBurstTeddy(x,y){
       const el = document.createElement('div');
       el.className = 'burst burst-teddy';
+      // If local teddy.png fails, mark this burst as fallback as well
+      if (!teddyImg.complete || teddyImg.naturalWidth === 0) {
+        el.classList.add('fallback');
+      }
       el.style.setProperty('--x', x+'px');
       el.style.setProperty('--y', y+'px');
       stage.appendChild(el);
@@ -307,8 +324,57 @@
 
       for(let i=0;i<tCount;i++){
         const {x,y} = randomPointInside();
-        // stagger slightly for nicer feel
         setTimeout(()=>addBurstTeddy(x,y), i*40);
       }
       for(let i=0;i<eCount;i++){
         const {x,y} = randomPointInside();
+        setTimeout(()=>addBurstEmoji(x,y), i*30);
+      }
+    }
+
+    function updateMessage(){
+      opening.style.display = 'none';
+      message.style.display = 'block';
+      message.textContent = lines[idx];
+      idx = (idx + 1) % lines.length;
+
+      // rotate bubble position
+      posClasses.forEach(c => message.classList.remove(c));
+      const choice = posClasses[Math.floor(Math.random()*posClasses.length)];
+      message.classList.add(choice);
+    }
+
+    // Debounce the tickle animation so it doesn't pile up
+    let animLock = false;
+    function tickle(){
+      if (animLock) return;
+      animLock = true;
+
+      teddyBtn.classList.add('tickle');
+      updateMessage();
+      effects();
+
+      setTimeout(()=>{
+        teddyBtn.classList.remove('tickle');
+        animLock = false;
+      }, 420);
+    }
+
+    // Interactions
+    teddyBtn.addEventListener('click', tickle, { passive: true });
+    teddyBtn.addEventListener('keydown', e=>{
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        tickle();
+      }
+    });
+
+    // Optional: preload local image (no-op if it doesn't exist)
+    (function preload(){
+      const img = new Image();
+      img.src = 'teddy.png';
+    })();
+  </script>
+</body>
+</html>
+``
