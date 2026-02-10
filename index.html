@@ -25,6 +25,9 @@
       --dur-tickle: 420ms;
       --dur-float: 1400ms;
       --dur-float-teddy: 2000ms;
+
+      /* Image URL (single source online) */
+      --teddy-url: url("https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png");
     }
 
     /* Respect users who prefer less motion */
@@ -41,13 +44,11 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, "Comic Sans MS", cursive, sans-serif;
       color:#222;
       background: radial-gradient(1200px 1200px at 50% -10%, var(--bg2), var(--bg1));
-      /* Full, stable mobile height */
-      min-height: 100dvh;
+      min-height: 100dvh;            /* stable height on mobile (S23) */
       display:flex;
       align-items:center;
       justify-content:center;
       overflow:hidden;
-      /* Safe areas for modern phones */
       padding: env(safe-area-inset-top) env(safe-area-inset-right)
                env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
@@ -104,7 +105,7 @@
       gap:16px;
     }
 
-    /* Accessible button container */
+    /* Button container */
     .teddy-btn{
       appearance:none;
       border:none;
@@ -128,7 +129,7 @@
     .teddy-btn:active{ transform: scale(.98); }
     .teddy-btn:focus-visible{ outline: 3px solid var(--tap-outline); outline-offset: 4px; }
 
-    /* The actual teddy image */
+    /* Teddy image (online URL only) */
     .teddy-img{
       width: 100%;
       height: 100%;
@@ -163,7 +164,6 @@
       z-index:3;
       transform: translate(-50%, -50%);
       will-change: transform;
-      /* Gentle pulse */
       animation: pulse 1400ms ease-in-out infinite;
     }
     @keyframes pulse{
@@ -199,15 +199,12 @@
     .burst-teddy{
       width: clamp(42px, 18vw, 82px);
       height: clamp(42px, 18vw, 82px);
-      background-image: url("teddy.png");
+      background-image: var(--teddy-url);
       background-size: contain;
       background-repeat:no-repeat;
       background-position:center;
       filter: drop-shadow(0 6px 8px rgba(0,0,0,.12));
       animation: floatUpTeddy var(--dur-float-teddy) ease-out forwards;
-    }
-    .burst-teddy.fallback{
-      background-image: url("https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png");
     }
     @keyframes floatUpTeddy{
       0%{ transform: translate(var(--x,0), var(--y,0)) translate(-50%,-50%) scale(1); opacity:1 }
@@ -235,13 +232,12 @@
     <div class="bg-hearts" aria-hidden="true"></div>
 
     <div class="teddy-wrap">
-      <!-- Teddy as a focusable/tappable control with a real <img> -->
+      <!-- Teddy button with online image -->
       <button id="teddy" class="teddy-btn" aria-label="Tickle the teddy" title="Tickle the teddy">
-        <img id="teddyImg"
-             class="teddy-img"
-             alt="Cute brown teddy"
-             src="teddy.png"
-             onerror="this.onerror=null; this.src='https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png';" />
+        <img
+          class="teddy-img"
+          src="https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png"
+          alt="Cute teddy bear" />
       </button>
 
       <!-- Opening bubble -->
@@ -260,7 +256,6 @@
 
   <script>
     const teddyBtn = document.getElementById('teddy');
-    const teddyImg = document.getElementById('teddyImg');
     const message = document.getElementById('message');
     const opening = document.getElementById('opening');
     const stage = document.querySelector('.stage');
@@ -306,10 +301,6 @@
     function addBurstTeddy(x,y){
       const el = document.createElement('div');
       el.className = 'burst burst-teddy';
-      // If local teddy.png fails, mark this burst as fallback as well
-      if (!teddyImg.complete || teddyImg.naturalWidth === 0) {
-        el.classList.add('fallback');
-      }
       el.style.setProperty('--x', x+'px');
       el.style.setProperty('--y', y+'px');
       stage.appendChild(el);
@@ -368,13 +359,6 @@
         tickle();
       }
     });
-
-    // Optional: preload local image (no-op if it doesn't exist)
-    (function preload(){
-      const img = new Image();
-      img.src = 'teddy.png';
-    })();
   </script>
 </body>
 </html>
-``
