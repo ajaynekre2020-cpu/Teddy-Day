@@ -1,197 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Teddy Day Surprise</title>
+  <meta charset="UTF-8" />
+  <title>Teddy Day Surprise (Mobile)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffb3cc" />
   <style>
-    body {
-      background-color: #ffe6f0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      overflow: hidden;
-      position: relative;
+    :root{
+      /* Colors */
+      --bg1:#ffe6f0;
+      --bg2:#ffd1e1;
+      --bubble-bg:#ffffff;
+      --bubble-fg:#d63384;
+      --shadow:0 10px 30px rgba(0,0,0,.12);
+
+      /* Sizing tuned for phones */
+      --teddy-size: clamp(220px, 62vw, 360px);
+      --bubble-fs: clamp(18px, 4.8vw, 28px);
+      --emoji-fs: clamp(28px, 10vw, 48px);
+      --tap-outline:#ff6fa4;
+
+      /* Motion */
+      --shake-amp: 10px;
+      --dur-tickle: 420ms;
+      --dur-float: 1400ms;
+      --dur-float-teddy: 2000ms;
     }
 
-    .teddy-container {
-      text-align: center;
-      position: relative;
-      z-index: 10;
+    /* Respect users who prefer less motion */
+    @media (prefers-reduced-motion: reduce){
+      *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
     }
 
-    img {
-      width: 35vw; /* teddy size for desktop */
-      max-width: 300px;
+    html,body{
+      height:100%;
+      margin:0;
+    }
+
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Comic Sans MS", cursive, sans-serif;
+      color:#222;
+      background: radial-gradient(1200px 1200px at 50% -10%, var(--bg2), var(--bg1));
+      /* Full, stable mobile height */
+      min-height: 100dvh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      /* Safe areas for modern phones */
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    /* Stage keeps everything inside and centered */
+    .stage{
+      position:relative;
+      width: 100%;
+      max-width: 480px;           /* comfy on phones */
+      min-height: min(100dvh, 860px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      padding-inline:16px;
+      z-index:0;
+    }
+
+    /* Subtle floating heart background */
+    .bg-hearts{
+      position:absolute; inset:0;
+      pointer-events:none;
+      opacity:.18;
+      z-index:0;
+    }
+    .bg-hearts::before,
+    .bg-hearts::after{
+      content:"💖 💕 💗 💞 💓";
+      position:absolute;
+      left:8%;
+      top:70%;
+      font-size: clamp(18px, 7vw, 40px);
+      line-height:1.6;
+      filter: blur(0.2px);
+      animation: slowFloat 12s linear infinite;
+    }
+    .bg-hearts::after{
+      left:auto; right:10%; top:18%;
+      animation-duration: 16s;
+      transform: scale(1.1);
+    }
+    @keyframes slowFloat{
+      0%{ transform: translateY(0) }
+      50%{ transform: translateY(-10px) }
+      100%{ transform: translateY(0) }
+    }
+
+    .teddy-wrap{
+      position:relative;
+      z-index:2;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:16px;
+    }
+
+    /* Accessible button as the teddy */
+    .teddy-btn{
+      appearance:none;
+      border:none;
+      background: transparent;
+      width: var(--teddy-size);
+      height: var(--teddy-size);
+      padding:0;
+      border-radius: 24px;
       cursor: pointer;
-      transition: transform 0.2s ease-in-out;
+      position:relative;
+      outline: none;
+      box-shadow: var(--shadow);
+      /* Image as background: local first, then network fallback */
+      background-image: image-set(
+        url("teddy.png") 1x,
+        url("https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png") 1x
+      );
+      background-size: contain;
+      background-repeat:no-repeat;
+      background-position:center;
+      transition: transform 120ms ease;
+      will-change: transform;
+      /* Light card feel */
+      background-color: #fff7fa;
+    }
+    .teddy-btn:active{ transform: scale(.98); }
+    .teddy-btn:focus-visible{ outline: 3px solid var(--tap-outline); outline-offset: 4px; }
+
+    .tickle{ animation: tickle var(--dur-tickle) ease-in-out; }
+    @keyframes tickle{
+      0%{ transform: translate(0,0) rotate(0) }
+      20%{ transform: translate(calc(-1*var(--shake-amp)),0) rotate(-4deg) }
+      40%{ transform: translate(var(--shake-amp),0) rotate(4deg) }
+      60%{ transform: translate(calc(-1*var(--shake-amp)),0) rotate(-3deg) }
+      80%{ transform: translate(var(--shake-amp),0) rotate(3deg) }
+      100%{ transform: translate(0,0) rotate(0) }
     }
 
-    .tickle {
-      animation: shake 0.5s;
+    .bubble{
+      position:absolute;
+      background: var(--bubble-bg);
+      color: var(--bubble-fg);
+      font-weight: 800;
+      font-size: var(--bubble-fs);
+      line-height: 1.2;
+      text-align:center;
+      padding: 14px 16px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      z-index:3;
+      transform: translate(-50%, -50%);
+      will-change: transform;
+      /* Gentle pulse */
+      animation: pulse 1400ms ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%{ transform: translate(-50%,-50%) scale(1) }
+      50%{ transform: translate(-50%,-50%) scale(1.04) }
+      100%{ transform: translate(-50%,-50%) scale(1) }
     }
 
-    @keyframes shake {
-      0% { transform: translate(0px, 0px) rotate(0deg); }
-      20% { transform: translate(-10px, 0px) rotate(-5deg); }
-      40% { transform: translate(10px, 0px) rotate(5deg); }
-      60% { transform: translate(-10px, 0px) rotate(-5deg); }
-      80% { transform: translate(10px, 0px) rotate(5deg); }
-      100% { transform: translate(0px, 0px) rotate(0deg); }
+    /* Bubble anchor positions (kept well inside on phones) */
+    .at-top{ left:50%; top:18%; }
+    .at-bottom{ left:50%; top:84%; }
+    .at-left{ left:16%; top:50%; transform: translate(0,-50%); }
+    .at-right{ left:84%; top:50%; transform: translate(0,-50%); }
+
+    /* Floating effects */
+    .burst{
+      position:absolute;
+      left:0; top:0;
+      pointer-events:none;
+      will-change: transform, opacity;
+      z-index:1;
+    }
+    .burst-emoji{
+      font-size: var(--emoji-fs);
+      animation: floatUp var(--dur-float) ease-out forwards;
+      text-shadow: 0 1px 0 rgba(0,0,0,.08);
+    }
+    @keyframes floatUp{
+      0%{ transform: translate(var(--x,0), var(--y,0)) translate(-50%,-50%); opacity:1 }
+      100%{ transform: translate(var(--x,0), calc(var(--y,0) - 26vh)) translate(-50%,-50%); opacity:0 }
     }
 
-    /* Bubble styling */
-    .bubble {
-      position: absolute;
-      background: #fff;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 1.8vw;   /* desktop text size */
-      color: #d63384;
-      font-weight: bold;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      max-width: 30vw;
-      animation: laughText 1s infinite;
+    .burst-teddy{
+      width: clamp(42px, 18vw, 82px);
+      height: clamp(42px, 18vw, 82px);
+      background-image: image-set(
+        url("teddy.png") 1x,
+        url("https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png") 1x
+      );
+      background-size: contain;
+      background-repeat:no-repeat;
+      background-position:center;
+      filter: drop-shadow(0 6px 8px rgba(0,0,0,.12));
+      animation: floatUpTeddy var(--dur-float-teddy) ease-out forwards;
+    }
+    @keyframes floatUpTeddy{
+      0%{ transform: translate(var(--x,0), var(--y,0)) translate(-50%,-50%) scale(1); opacity:1 }
+      100%{ transform: translate(var(--x,0), calc(var(--y,0) - 34vh)) translate(-50%,-50%) scale(.72); opacity:0 }
     }
 
-    @keyframes laughText {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-
-    .burst-teddy {
-      position: absolute;
-      width: 12vw;
-      max-width: 70px;
-      pointer-events: none;
-      animation: floatUp 3s forwards;
-    }
-
-    @keyframes floatUp {
-      0% { transform: translateY(0) scale(1); opacity: 1; }
-      100% { transform: translateY(-40vh) scale(0.5); opacity: 0; }
-    }
-
-    .haha-emoji {
-      position: absolute;
-      font-size: 5vw;
-      animation: floatLaugh 2s forwards;
-      pointer-events: none;
-    }
-
-    @keyframes floatLaugh {
-      0% { transform: translateY(0); opacity: 1; }
-      100% { transform: translateY(-20vh); opacity: 0; }
-    }
-
-    /* Mobile adjustments */
-    @media (max-width: 600px) {
-      img { 
-        width: 90vw;   /* teddy fills most of the phone screen */
-        max-width: none; 
-      }
-      .bubble { 
-        font-size: 7vw;   /* much bigger text on phone */
-        max-width: 85vw;  /* bubble wider */
-        padding: 14px 18px; /* more padding for readability */
-      }
-      .burst-teddy { width: 25vw; }
-      .haha-emoji { font-size: 14vw; }
+    /* Footer hint */
+    .hint{
+      position:absolute;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      left:50%; transform:translateX(-50%);
+      font-size: clamp(12px, 3.6vw, 14px);
+      color:#a22c66;
+      background: rgba(255,255,255,.8);
+      padding: 8px 12px;
+      border-radius: 999px;
+      box-shadow: 0 4px 10px rgba(0,0,0,.08);
+      z-index:2;
+      user-select:none;
     }
   </style>
 </head>
 <body>
-  <div class="teddy-container">
-    <img id="teddy" src="https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png" alt="Cute Brown Teddy">
-    <!-- Opening line bubble -->
-    <div id="opening" class="bubble" style="top:-15vh; left:50%; transform:translateX(-50%);">
-      Hey Diya Wanna play with me 💕
+  <div class="stage" aria-live="polite">
+    <div class="bg-hearts" aria-hidden="true"></div>
+
+    <div class="teddy-wrap">
+      <!-- The teddy as a focusable/tappable control -->
+      <button id="teddy" class="teddy-btn" aria-label="Tickle the teddy" title="Tickle the teddy"></button>
+
+      <!-- Opening bubble -->
+      <div id="opening" class="bubble at-top">
+        Hey Diya, wanna play with me? 💕
+      </div>
+
+      <!-- Dynamic message bubble -->
+      <div id="message" class="bubble at-right" style="display:none;">
+        Hehe! That tickles! 🧸💖 😂🤣
+      </div>
     </div>
-    <!-- Tickling bubble -->
-    <div id="message" class="bubble" style="display:none;">
-      Hehe! That tickles! 🧸💖 😂🤣
-    </div>
+
+    <div class="hint">Tap the teddy 🐻 to tickle</div>
   </div>
 
   <script>
-    const teddy = document.getElementById('teddy');
+    const teddyBtn = document.getElementById('teddy');
     const message = document.getElementById('message');
     const opening = document.getElementById('opening');
+    const stage = document.querySelector('.stage');
 
-    const tickleLines = [
-      "Hehe! Dont Do this! 🧸💖 😂🤣",
-      "Your Smile is very Beautiful! 😍💕",
-      "Opps, Your eyes too! 👀😍",
+    const lines = [
+      "Hehe! Don't do this! 🧸💖 😂🤣",
+      "Your smile is very beautiful! 😍💕",
+      "Oops, your eyes too! 👀😍",
       "Are you blushing?! 🤭👀",
       "You look pretty when you blush 😍💕",
       "Happy Teddy Day! 🐻💕🤣"
     ];
-    let tickleIndex = 0;
+    let idx = 0;
 
-    teddy.addEventListener('click', () => {
-      teddy.classList.add('tickle');
-      opening.style.display = 'none';
-      message.style.display = 'block';
+    const posClasses = ['at-top','at-bottom','at-left','at-right'];
+    const emojis = ['😂','🤣','😆'];
 
-      message.textContent = tickleLines[tickleIndex];
-      tickleIndex = (tickleIndex + 1) % tickleLines.length;
+    // Cap effect nodes so the DOM stays light on repeated taps
+    const MAX_LIVE = 18;
+    const live = new Set();
 
-      const positions = ["top", "bottom", "left", "right"];
-      const choice = positions[Math.floor(Math.random() * positions.length)];
+    function rand(min,max){ return Math.random()*(max-min)+min; }
 
-      if (choice === "top") {
-        message.style.top = "-15vh";
-        message.style.left = "50%";
-        message.style.right = "auto";
-        message.style.bottom = "auto";
-        message.style.transform = "translateX(-50%)";
-      } else if (choice === "bottom") {
-        message.style.top = "auto";
-        message.style.bottom = "-15vh";
-        message.style.left = "50%";
-        message.style.right = "auto";
-        message.style.transform = "translateX(-50%)";
-      } else if (choice === "left") {
-        message.style.top = "50%";
-        message.style.left = "-30vw";
-        message.style.right = "auto";
-        message.style.bottom = "auto";
-        message.style.transform = "translateY(-50%)";
-      } else if (choice === "right") {
-        message.style.top = "50%";
-        message.style.left = "auto";
-        message.style.right = "-30vw";
-        message.style.bottom = "auto";
-        message.style.transform = "translateY(-50%)";
+    function randomPointInside(){
+      const r = stage.getBoundingClientRect();
+      // leave some padding from edges
+      const x = rand(r.width*0.12, r.width*0.88);
+      const y = rand(r.height*0.18, r.height*0.88);
+      return { x, y };
+    }
+
+    function addBurstEmoji(x,y){
+      const el = document.createElement('div');
+      el.className = 'burst burst-emoji';
+      el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      el.style.setProperty('--x', x+'px');
+      el.style.setProperty('--y', y+'px');
+      stage.appendChild(el);
+      live.add(el);
+      setTimeout(()=>{ el.remove(); live.delete(el); }, 1500);
+    }
+
+    function addBurstTeddy(x,y){
+      const el = document.createElement('div');
+      el.className = 'burst burst-teddy';
+      el.style.setProperty('--x', x+'px');
+      el.style.setProperty('--y', y+'px');
+      stage.appendChild(el);
+      live.add(el);
+      setTimeout(()=>{ el.remove(); live.delete(el); }, 2100);
+    }
+
+    function effects(){
+      const room = Math.max(0, MAX_LIVE - live.size);
+      const tCount = Math.min(6, Math.floor(room * 0.6));
+      const eCount = Math.min(6, Math.floor(room * 0.6));
+
+      for(let i=0;i<tCount;i++){
+        const {x,y} = randomPointInside();
+        // stagger slightly for nicer feel
+        setTimeout(()=>addBurstTeddy(x,y), i*40);
       }
-
-      for (let i = 0; i < 20; i++) {
-        const smallTeddy = document.createElement('img');
-        smallTeddy.src = "https://pngimg.com/uploads/teddy_bear/teddy_bear_PNG36.png";
-        smallTeddy.classList.add('burst-teddy');
-        smallTeddy.style.left = Math.random() * window.innerWidth + "px";
-        smallTeddy.style.top = Math.random() * window.innerHeight + "px";
-        document.body.appendChild(smallTeddy);
-        setTimeout(() => { smallTeddy.remove(); }, 3000);
-      }
-
-      const emojis = ["😂", "🤣", "😆"];
-      for (let i = 0; i < 15; i++) {
-        const hahaEmoji = document.createElement('div');
-        hahaEmoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-        hahaEmoji.classList.add('haha-emoji');
-        hahaEmoji.style.left = Math.random() * window.innerWidth + "px";
-        hahaEmoji.style.top = Math.random() * window.innerHeight + "px";
-        document.body.appendChild(hahaEmoji);
-        setTimeout(() => { hahaEmoji.remove(); }, 2000);
-      }
-
-      setTimeout(() => { teddy.classList.remove('tickle'); }, 500);
-    });
-  </script>
-</body>
-</html>
-
+      for(let i=0;i<eCount;i++){
+        const {x,y} = randomPointInside();
